@@ -1,4 +1,4 @@
-require('dotenv').config({ path: './.env' });
+require('dotenv').config({ path: '../.env' });
 const { encrypt, decrypt } = require('../services/crypto');
 const readline = require('readline');
 
