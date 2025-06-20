@@ -54,7 +54,7 @@ router.post(process.env.WEBHOOK_ENDPOINT || '/webhook', async (req, res) => {
 
     try {
         const id = await SaveRequest(evento);
-        logger.logSuccess(`Evento registrado (${matchedClient.nome} - ${endpoint}) - ID ${id}`)
+        logger.logSuccess(`Evento registrado (${matchedClient.nome} - ${endpoint}) - ID ${process.env.INSPECT_ENDPOINT}${id}`)
         return res.status(200).json({ success: true});
     } catch (err) {
         await SaveFailure({
