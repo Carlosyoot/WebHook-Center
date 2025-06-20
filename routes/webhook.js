@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const router = express.Router();
 const logger = require("../tools/Logger");
-const { decrypt } = require('../services/crypto');
+const { decrypt } = require('../services/Crypto');
 const { SaveRequest, SaveFailure, ListError } = require('../services/RedisService');
 
 const clients = JSON.parse(fs.readFileSync(path.join(__dirname, '../secrets/clients.json'), 'utf8'));

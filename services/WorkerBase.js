@@ -1,5 +1,6 @@
 const { createClient } = require('redis');
 const axios = require('axios');
+const logger = require('../tools/Logger');
 require('dotenv').config();
 
 const STREAM_KEY = 'webhook:sucesso';
@@ -9,27 +10,39 @@ const NIFI_ENDPOINT = process.env.NIFI_ENDPOINT;
 
 const redis = createClient({ url: process.env.REDIS_URL });
 
+async function groupExists() {
+  try {
+    const groups = await redis.xInfoGroups(STREAM_KEY);
+    return groups.some(g => g.name === GROUP_NAME);
+  } catch (err) {
+    return false;
+  }
+}
+
+async function createGroupIfNeeded() {
+  const exists = await groupExists();
+  if (!exists) {
+    try {
+      await redis.xGroupCreate(STREAM_KEY, GROUP_NAME, '0', { MKSTREAM: true });
+      logger.logSuccess(`Grupo Redis "${GROUP_NAME}" criado.`);
+    } catch (err) {
+      logger.logError(`Erro ao criar grupo Redis: ${err.message}`);
+      throw err;
+    }
+  } else {
+    logger.logInfo(`Grupo Redis "${GROUP_NAME}" já existe.`);
+  }
+}
+
 async function startWorker() {
   await redis.connect();
+  await createGroupIfNeeded();
 
-  try {
-    await redis.xGroupCreate(STREAM_KEY, GROUP_NAME, '0', { MKSTREAM: true });
-    console.log(`👷 Grupo "${GROUP_NAME}" criado.`);
-  } catch (err) {
-    if (err.message.includes('BUSYGROUP')) {
-      console.log(`👷 Grupo "${GROUP_NAME}" já existe.`);
-    } else {
-      console.error('❌ Erro ao criar grupo:', err.message);
-      console.log(process.env.NIFI_ENDPOINT);
-      return;
-    }
-  }
-
-  console.log('🚀 Worker ativo. Aguardando mensagens...');
+  logger.logSuccess('Worker Redis iniciado. Aguardando eventos...');
 
   while (true) {
     try {
-      const messages = await redis.xReadGroup(GROUP_NAME, CONSUMER_NAME, {
+      const response = await redis.xReadGroup(GROUP_NAME, CONSUMER_NAME, {
         key: STREAM_KEY,
         id: '>'
       }, {
@@ -37,33 +50,32 @@ async function startWorker() {
         BLOCK: 5000
       });
 
-      if (!messages || messages.length === 0) continue;
+      if (!response || response.length === 0) continue;
 
-      for (const { messages: streamMessages } of messages) {
+      for (const { messages: streamMessages } of response) {
         for (const { id, message } of streamMessages) {
-          try {
-            const cliente = message.cliente || 'desconhecido';
-            const eventoRaw = message.evento || '{}';
-            const evento = JSON.parse(eventoRaw);
+          const cliente = message.cliente || 'Desconhecido - possível erro';
+          const rawEvento = message.evento || '{}';
 
+          try {
+            const evento = JSON.parse(rawEvento);
             const payload = {
               payload: JSON.parse(evento.payload || '{}'),
               data: evento.data
             };
 
-            console.log("NIFI: " , NIFI_ENDPOINT, " Contéudo: ", payload);
-            await axios.post(process.env.NIFI_ENDPOINT, payload);
-            console.log(`✅ Enviado para NiFi (${cliente}) - ID ${id}`);
+            console.log(NIFI_ENDPOINT);
+            console.log(payload.data);
+            await axios.post(NIFI_ENDPOINT, payload);
+            logger.logSuccess(`Enviado para NiFi (${cliente}) - ID ${id}`);
             await redis.xAck(STREAM_KEY, GROUP_NAME, id);
           } catch (err) {
-            console.log(process.env.NIFI_ENDPOINT);
-            console.error(`❌ Erro ao processar mensagem - ID ${id}:`, err.message);
+            logger.logError(`Falha ao enviar para NiFi (${cliente}) - ID ${id}: ${err.message}`);
           }
         }
       }
-
     } catch (err) {
-      console.error('❌ Erro no loop do worker:', err.message);
+      logger.logError(`Erro no loop do worker: ${err.message}`);
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }

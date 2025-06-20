@@ -28,7 +28,7 @@ router.get('/inspect/:id', async (req, res) => {
         evento.payload = JSON.parse(evento.payload);
       }
     } catch (e) {
-
+        
     }
 
     return res.json({

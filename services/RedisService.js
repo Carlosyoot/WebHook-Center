@@ -10,6 +10,7 @@ async function ConnectRedis() {
       logger.logSuccess('Conexão estabelecida com Redis');
     } catch (err) {
       logger.logError(`Erro ao conectar no Redis: ${err.message}`);
+      console.log(err);
       throw err;
     }
   }
@@ -29,20 +30,6 @@ async function SaveFailure(payload) {
   return redis.xAdd('webhook:erro', '*', payload);
 }
 
-async function ListError() {
-  const response = await redis.xRange('webhook:erro', '-', '+');
-  return response.map(([id, fields]) => ({
-    id,
-    rota: getField(fields, 'rota'),
-    motivo: getField(fields, 'motivo'),
-    data: getField(fields, 'data')
-  }));
-}
-
-function getField(fields, key) {
-  const index = fields.findIndex((f) => f === key);
-  return index !== -1 ? fields[index + 1] : null;
-}
 
 function parsePayload(value) {
   try {
@@ -56,7 +43,6 @@ module.exports = {
   ConnectRedis,
   SaveRequest,
   SaveFailure,
-  ListError,
   redis,
   parsePayload
 };

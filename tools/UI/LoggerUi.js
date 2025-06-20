@@ -19,9 +19,15 @@ function printHelp() {
   console.log(chalk.cyan(' [Q] - Sair do terminal de logs\n'));
 }
 
+function clearScreen() {
+  process.stdout.write('\x1Bc');
+}
+
 function updateLogs() {
   if (modoAjuda) return;
   if (!fs.existsSync(currentFile)) return;
+
+  clearScreen();
 
   const content = fs.readFileSync(currentFile, 'utf-8');
   const lines = content.trim().split('\n');

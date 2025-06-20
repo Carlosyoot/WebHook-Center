@@ -1,7 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { encrypt } = require('../services/crypto');
+const { encrypt } = require('../services/Crypto');
 const authAdmin = require('./middleware/Roles');
 const router = express.Router();
 const secretsPath = path.join(__dirname, '../secrets/clients.json');

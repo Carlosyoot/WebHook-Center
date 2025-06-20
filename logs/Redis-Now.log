@@ -1,3 +1,3 @@
-[20/06/2025 09:47:21] 🔄 Conectando ao Redis...
-[20/06/2025 09:47:21] ✅ Servidor rodando na porta 4545
-[20/06/2025 09:47:21] ✅ Conexão estabelecida com Redis
+[20/06/2025 14:36:49] 🔄 Conectando ao Redis...
+[20/06/2025 14:36:49] 🔸 Limpeza aplicada em "nifi:sucesso" (MAXLEN = 1000)
+[20/06/2025 14:36:49] ✅ Conexão estabelecida com Redis

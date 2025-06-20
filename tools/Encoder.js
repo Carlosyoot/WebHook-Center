@@ -1,5 +1,5 @@
 require('dotenv').config({ path: '../.env' });
-const { encrypt, decrypt } = require('../services/crypto');
+const { encrypt, decrypt } = require('../services/Crypto');
 const readline = require('readline');
 
 const rl = readline.createInterface({
