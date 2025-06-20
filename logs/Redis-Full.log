@@ -30,3 +30,4 @@
 [20/06/2025 18:01:52] ⭕ Tentativa 3 para ID 1750453305804-0 falhou. Reprocessando em 8481ms.
 [20/06/2025 18:02:00] ✅ Enviado para NiFi (Voors) - ID 1750453305804-0
 [20/06/2025 18:03:10] ✅ Evento 1750453305804-0 com falhas no processamento
+[20/06/2025 18:08:48] ❌ Erro no cron de reprocessamento do nifi:falha: The client is closed
