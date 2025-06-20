@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const router = express.Router();
+const logger = require("../tools/Logger");
 const { decrypt } = require('../services/crypto');
 const { SaveRequest, SaveFailure, ListError } = require('../services/RedisService');
 
@@ -53,14 +54,15 @@ router.post(process.env.WEBHOOK_ENDPOINT || '/webhook', async (req, res) => {
 
     try {
         const id = await SaveRequest(evento);
-        console.log(`[${timestamp}] ✅ Evento registrado (${matchedClient.nome} - ${endpoint}) - ID ${id}`);
-        return res.status(200).json({ success: true, id });
+        logger.logSuccess(`Evento registrado (${matchedClient.nome} - ${endpoint}) - ID ${id}`)
+        return res.status(200).json({ success: true});
     } catch (err) {
         await SaveFailure({
             endpoint,
             motivo: err.message || 'Erro ao registrar evento',
             data: timestamp
         });
+        logger.logError(`Erro ao registrar evento: ${err.message}`);
         return res.status(500).json({ error: 'Erro interno ao registrar evento' });
     }
 });

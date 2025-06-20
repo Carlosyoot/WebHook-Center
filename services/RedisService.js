@@ -1,10 +1,17 @@
 const { createClient } = require('redis');
 const redis = createClient({ url: process.env.REDIS_URL });
+const logger = require("../tools/Logger")
 
 async function ConnectRedis() {
     if (!redis.isOpen) {
+    try {
         await redis.connect();
+        logger.logInfo("Conexão estabelecida com Redis")
+    } catch (err) {
+        logger.logError(`Erro ao conectar no Redis: ${err.message}`);
+        throw err; 
     }
+  }
 }
 
 async function SaveRequest(payload) {

@@ -14,52 +14,57 @@ async function startWorker() {
 
   try {
     await redis.xGroupCreate(STREAM_KEY, GROUP_NAME, '0', { MKSTREAM: true });
-    console.log(`Grupo "${GROUP_NAME}" criado ou já existente.`);
+    console.log(`👷 Grupo "${GROUP_NAME}" criado.`);
   } catch (err) {
-    if (!err.message.includes('BUSYGROUP')) {
-      console.error('Erro ao criar o grupo:', err.message);
+    if (err.message.includes('BUSYGROUP')) {
+      console.log(`👷 Grupo "${GROUP_NAME}" já existe.`);
+    } else {
+      console.error('❌ Erro ao criar grupo:', err.message);
+      console.log(process.env.NIFI_ENDPOINT);
       return;
     }
-    console.log(`Grupo "${GROUP_NAME}" já existe.`);
   }
 
-  console.log('Worker ativo. Aguardando mensagens...');
+  console.log('🚀 Worker ativo. Aguardando mensagens...');
 
   while (true) {
     try {
-      const response = await redis.xReadGroup(GROUP_NAME, CONSUMER_NAME, {
+      const messages = await redis.xReadGroup(GROUP_NAME, CONSUMER_NAME, {
         key: STREAM_KEY,
         id: '>'
-      }, { COUNT: 1, BLOCK: 5000 });
+      }, {
+        COUNT: 1,
+        BLOCK: 5000
+      });
 
-      if (!response) continue;
+      if (!messages || messages.length === 0) continue;
 
-      for (const [streamName, messages] of response) {
-        for (const [id, fieldsArray] of messages) {
-          const fields = {};
-          for (let i = 0; i < fieldsArray.length; i += 2) {
-            fields[fieldsArray[i]] = fieldsArray[i + 1];
-          }
-
-          const evento = JSON.parse(fields.evento || '{}');
-          const payload = {
-            payload: JSON.parse(evento.payload || '{}'),
-            data: evento.data
-          };
-
+      for (const { messages: streamMessages } of messages) {
+        for (const { id, message } of streamMessages) {
           try {
-            await axios.post(NIFI_ENDPOINT, payload);
-            console.log(`✅ Enviado para NiFi (${fields.cliente}) - ID ${id}`);
+            const cliente = message.cliente || 'desconhecido';
+            const eventoRaw = message.evento || '{}';
+            const evento = JSON.parse(eventoRaw);
+
+            const payload = {
+              payload: JSON.parse(evento.payload || '{}'),
+              data: evento.data
+            };
+
+            console.log("NIFI: " , NIFI_ENDPOINT, " Contéudo: ", payload);
+            await axios.post(process.env.NIFI_ENDPOINT, payload);
+            console.log(`✅ Enviado para NiFi (${cliente}) - ID ${id}`);
             await redis.xAck(STREAM_KEY, GROUP_NAME, id);
           } catch (err) {
-            console.error(`❌ Erro ao enviar para NiFi (${fields.cliente}) - ID ${id}: ${err.message}`);
+            console.log(process.env.NIFI_ENDPOINT);
+            console.error(`❌ Erro ao processar mensagem - ID ${id}:`, err.message);
           }
         }
       }
 
     } catch (err) {
-      console.error('Erro inesperado no loop do worker:', err.message);
-      await new Promise(resolve => setTimeout(resolve, 1000)); 
+      console.error('❌ Erro no loop do worker:', err.message);
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 }
