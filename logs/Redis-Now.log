@@ -1,3 +1,13 @@
-[20/06/2025 14:36:49] 🔄 Conectando ao Redis...
-[20/06/2025 14:36:49] 🔸 Limpeza aplicada em "nifi:sucesso" (MAXLEN = 1000)
-[20/06/2025 14:36:49] ✅ Conexão estabelecida com Redis
+[20/06/2025 18:01:23] 🔄 Conectando ao Redis...
+[20/06/2025 18:01:23] ✅ Servidor rodando na porta 4545
+[20/06/2025 18:01:23] ✅ Conexão estabelecida com Redis
+[20/06/2025 18:01:23] 🔁 Worker Redis iniciado. Aguardando eventos...
+[20/06/2025 18:01:45] ✅ Evento registrado (Voors - atualizar/usuario) - ID http://localhost:4545/inspect/1750453305804-0
+[20/06/2025 18:01:45] ❌ Erro ao enviar para Nifi (Voors) - ID 1750453305804-0: 
+[20/06/2025 18:01:45] ⭕ Tentativa 1 para ID 1750453305804-0 falhou. Reprocessando em 2199ms.
+[20/06/2025 18:01:48] ❌ Erro ao enviar para Nifi (Voors) - ID 1750453305804-0: 
+[20/06/2025 18:01:48] ⭕ Tentativa 2 para ID 1750453305804-0 falhou. Reprocessando em 3973ms.
+[20/06/2025 18:01:52] ❌ Erro ao enviar para Nifi (Voors) - ID 1750453305804-0: 
+[20/06/2025 18:01:52] ⭕ Tentativa 3 para ID 1750453305804-0 falhou. Reprocessando em 8481ms.
+[20/06/2025 18:02:00] ✅ Enviado para NiFi (Voors) - ID 1750453305804-0
+[20/06/2025 18:03:10] ✅ Evento 1750453305804-0 com falhas no processamento

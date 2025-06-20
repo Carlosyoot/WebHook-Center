@@ -26,6 +26,7 @@ router.post('/nifi/confirm/:id', async (req, res) => {
     await redisService.redis.xDel(SUCESSO_STREAM, id);
     await redisService.redis.xDel(ERRO_STREAM, id).catch(() => {});
     await retryService.resetRetry(id);
+    logger.logSuccess(`Evento ${id} processado`);
 
     return res.json({ success: true, movedTo: CONCLUIDO_STREAM });
   } catch (err) {
@@ -48,6 +49,9 @@ router.post('/nifi/failure/:id', async (req, res) => {
     await redisService.redis.xDel(SUCESSO_STREAM, id);
     await redisService.redis.xDel(CONCLUIDO_STREAM, id).catch(() => {});
     await retryService.resetRetry(id);
+
+    logger.logError(`Evento ${id} com falhas no processamento`);
+
 
     return res.json({ failed: true, movedTo: FALHA_STREAM });
   } catch (err) {
